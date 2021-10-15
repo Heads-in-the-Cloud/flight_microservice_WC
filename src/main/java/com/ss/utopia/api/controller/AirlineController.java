@@ -69,15 +69,26 @@ public class AirlineController {
 	@PostMapping(path = "/add/airport")
 	public ResponseEntity<Airport> saveAirport(@RequestBody Airport airport) {
 		
-		URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/airports").toUriString());
-		return ResponseEntity.created(uri).body(airline_service.save(airport));
+		Optional<Airport> new_airport = airline_service.save(airport);
+		
+		
+		if(new_airport.isEmpty()) {
+			return ResponseEntity.badRequest().body(airport);
+		}
+		
+		URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/read/airports/id="+airport.getIataId()).toUriString());
+		return ResponseEntity.created(uri).body(new_airport.get());
 	}
 	
 	@PostMapping(path = "/add/route")
 	public ResponseEntity<Route> saveRoute(@RequestBody Route route) {
+		Optional<Route> new_route = airline_service.save(route);
+		if(new_route.isEmpty()) {
+			return ResponseEntity.badRequest().body(route);
+		}
 		
 		URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/routes").toUriString());
-		return ResponseEntity.created(uri).body(airline_service.save(route));
+		return ResponseEntity.created(uri).body(new_route.get());
 	}
 	
 	@PostMapping(path = "/add/airplane")
@@ -96,9 +107,14 @@ public class AirlineController {
 	
 	@PostMapping(path = "/add/flight")
 	public ResponseEntity<Flight> saveRoute(@RequestBody Flight flight) {
-
+		Optional<Flight> new_flight = airline_service.save(flight);
+		
+		if(new_flight.isEmpty()) {
+			return ResponseEntity.badRequest().body(flight);
+		}
+		
 		URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/flights").toUriString());
-		return ResponseEntity.created(uri).body(airline_service.save(flight));
+		return ResponseEntity.created(uri).body(new_flight.get());
 	}
 	
 
@@ -174,7 +190,7 @@ public class AirlineController {
 	public ResponseEntity<Airplane> getAirplaneById(@PathVariable Integer airplane_id) {
 		return ResponseEntity.ok().body(airline_service.getAirplaneById(airplane_id));
 	}
-	@RequestMapping(path = "/airplanes", method = RequestMethod.GET)
+	@RequestMapping(path = "read/airplanes", method = RequestMethod.GET)
 	public ResponseEntity<List<Airplane>> findAllAirplanes() {
 		return ResponseEntity.ok().body(airline_service.findAllAirplanes());
 	}

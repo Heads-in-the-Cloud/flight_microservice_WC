@@ -1,6 +1,7 @@
 package com.ss.utopia.api.service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import java.util.Optional;
@@ -8,6 +9,9 @@ import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.stereotype.Service;
@@ -40,6 +44,9 @@ public class AirlineService {
 
 	@Autowired
 	RouteRepository route_repository;
+
+	@Autowired
+	SessionFactory sessionFactory;
 
 	public List<Airport> findAllAirports() {
 		return airport_repository.findAll();
@@ -85,35 +92,90 @@ public class AirlineService {
 		return flight_repository.existsById(flight_id) ? flight_repository.getById(flight_id) : null;
 	}
 
-	public Airport save(Airport airport) {
+	public Optional<Airport> save(Airport airport) {
+
+		if (airport_repository.existsById(airport.getIataId())) {
+			return Optional.empty();
+		}
 		try {
-			return airport_repository.saveAndFlush(airport);
+
+			List<Route> origin_routes = new ArrayList<>();
+
+			if (airport.getAs_origin() != null) {
+				origin_routes = airport.getAs_origin().stream().peek(x -> x.setOrigin_id(airport.getIataId()))
+						.collect(Collectors.toList());
+				airport.setAs_origin(null);
+
+			}
+			List<Route> destination_routes = new ArrayList<>();
+			if (airport.getAs_destination() != null) {
+				destination_routes = airport.getAs_destination().stream()
+						.peek(x -> x.setDestination_id(airport.getIataId())).collect(Collectors.toList());
+				airport.setAs_destination(null);
+
+			}
+
+			Session session = sessionFactory.openSession();
+			Transaction tx = session.beginTransaction();
+
+			airport_repository.save(airport);
+
+			for (Route route : origin_routes) {
+				save(route);
+			}
+			for (Route route : destination_routes) {
+				save(route);
+			}
+
+			tx.commit();
+			session.close();
+			
+			airport.setAs_destination(destination_routes);
+			airport.setAs_origin(origin_routes);
+			
+			return Optional.of(airport);
+
 		} catch (IllegalArgumentException e) {
-			return null;
+			
+			e.printStackTrace();
+			return Optional.empty();
 		}
 
 	}
-	
+
 	@Transactional
-	public Route save(Route route) {
+	public Optional<Route> save(Route route) {
 		try {
+
 			Route persist_route = new Route();
 			persist_route.setOrigin_id(route.getOrigin_id());
 			persist_route.setDestination_id(route.getDestination_id());
-			
 
+			
 			persist_route = route_repository.save(persist_route);
 			Integer route_id = persist_route.getId();
-			if(route.getFlights() != null) {
-			route.getFlights().forEach(x -> x.setRoute_id(route_id));
+			if (route.getFlights() != null) {
+				System.out.println(route);
+				System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+				System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+				System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+				System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+				System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+				route.getFlights().forEach(x -> {
+					x.setRoute_id(route_id);
+					save(x);
+				});
 			}
-			persist_route.setFlights(route.getFlights());
-			return persist_route;
+			
+			
+			
+			return Optional.of(persist_route);
 
 		} catch (IllegalArgumentException e) {
 
 			// e.printStackTrace();
-			return null;
+			
+			return Optional.empty();
 		}
 	}
 
@@ -137,20 +199,48 @@ public class AirlineService {
 		}
 	}
 
-	public Flight save(Flight flight) {
+	public Optional<Flight> save(Flight flight) {
 		try {
 
-			return flight_repository.save(flight);
+			return Optional.of(flight_repository.save(flight));
 
 		} catch (IllegalArgumentException e) {
 
 			// e.printStackTrace();
-			return null;
+			return Optional.empty();
 		}
 	}
 
 	@Transactional
 	public Optional<Airport> update(Airport airport) {
+
+		if (!airport_repository.existsById(airport.getIataId().toUpperCase())) {
+
+			return Optional.empty();
+
+		}
+		try {
+
+			Airport airport_to_update = airport_repository.getAirportById(airport.getIataId()).get();
+			if (airport.getAs_destination() != null) {
+
+			}
+			if (airport.getAs_origin() != null) {
+
+			}
+			airport_to_update.setAs_destination(airport.getAs_destination());
+			airport_to_update.setAs_origin(airport.getAs_origin());
+			airport_to_update.setCity(airport.getCity());
+			return Optional.of(airport_to_update);
+
+		} catch (Exception e) {
+			return Optional.empty();
+		}
+
+	}
+
+	@Transactional
+	public Optional<Airport> updateOverwrite(Airport airport) {
 
 		if (airport_repository.existsById(airport.getIataId().toUpperCase())) {
 			Airport airport_to_save = airport_repository.getAirportById(airport.getIataId()).get();
@@ -173,7 +263,7 @@ public class AirlineService {
 			if (route.getDestination_id() != null) {
 				route_to_save.setDestination_id(route.getDestination_id());
 			}
-			if(route.getFlights() != null) {
+			if (route.getFlights() != null) {
 				route_to_save.setFlights(route.getFlights());
 			}
 
@@ -198,11 +288,10 @@ public class AirlineService {
 		return Optional.empty();
 	}
 
-	
-	public Optional<Flight> findFlightById(Integer flight_id){
+	public Optional<Flight> findFlightById(Integer flight_id) {
 		return flight_repository.findById(flight_id);
 	}
-	
+
 	@Transactional
 	public Optional<Flight> update(Flight flight) {
 		if (flight_repository.existsById(flight.getId())) {

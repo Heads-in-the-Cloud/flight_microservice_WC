@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
@@ -59,7 +60,161 @@ public class AirlineServiceTests {
 		@Autowired
 		RouteRepository route_repository;
 		
+		Integer NUM_TO_ADD = 5;
 		
+		
+		
+		
+		public Boolean collectionsMatch(List<?> collection1, List<?> collection2) {
+			for(Object o: collection1) {
+				if(!collection2.contains(o)) return Boolean.FALSE;
+			}
+			return collection1.size() == collection2.size();
+			
+		}
+		
+		
+		@Nested
+		public 	class testAirport{
+						
+			Airport airport = new Airport();
+			Airport inserted_airport = new Airport();
+			
+			String existing_airport_id = "LAX";
+			String existing_airport_city = "Los Angeles";
+			String bad_id = "ABCD";
+			String good_id = "ABC";
+			String city = "Chino Hills";
+			
+			
+			public void setup() {
+				airport = new Airport();
+				airport.setCity(city);
+				airport.setIataId(good_id);
+				
+			
+			}
+			
+			public void save() {
+				this.airport = airline_service.save(airport).get();
+				this.good_id = airport.getIataId();
+				this.city = airport.getCity();
+			}
+			
+			public void tearDown() {
+				airline_service.deleteAirportById(good_id);
+			}
+			
+			@Test
+			public void testFindAirport() {
+
+				assertEquals(airline_service.getAirportById(existing_airport_id).getCity(), existing_airport_city);
+				
+			}
+			
+			@Transactional
+			@Test
+			public void testCity() {
+				// TODO Auto-generated method stub
+				setup();
+				save();
+				
+				assertEquals(airline_service.getAirportById(good_id).getCity(), city);
+				tearDown();
+			}
+			
+			@Test
+			public void testId() {
+				setup();
+				save();
+				assertEquals(airline_service.getAirportById(airport.getIataId()).getIataId(), good_id);
+				tearDown();
+			}
+			
+			@Transactional
+			@Test
+			public void testNonNullOutoing() {
+				
+				setup();		
+				
+				List<Route> routes = airline_service.findAllRoutes().stream().limit(NUM_TO_ADD).collect(Collectors.toList());
+			
+				airport.setAs_origin(routes);
+				
+				
+				airline_service.save(airport);
+				
+				inserted_airport = airline_service.getAirportById(good_id);
+				
+
+				assertEquals(inserted_airport.getAs_origin().size(), NUM_TO_ADD);
+				
+				tearDown();
+				
+				
+			}
+			
+			@Transactional
+			@Test
+			public void testNonNullIncoming() {
+				
+				setup();		
+				
+				List<Route> routes = airline_service.findAllRoutes().stream().limit(NUM_TO_ADD).collect(Collectors.toList());
+			
+				routes.forEach(x -> x.setOrigin_id(x.getDestination_id()));
+
+				airport.setAs_destination(routes);
+				
+				airline_service.save(airport);
+				
+				inserted_airport = airline_service.getAirportById(good_id);
+			
+				assertEquals(inserted_airport.getAs_destination().size(), NUM_TO_ADD);
+				
+				tearDown();
+			}
+			
+			
+			@Test
+			public void testUpdate() {
+				setup();
+				save();				
+				String update_city = "cityname";
+				airport.setCity(update_city);
+				airline_service.update(airport);
+				assertEquals(airline_service.getAirportById(good_id).getCity(), update_city);
+				tearDown();
+				
+			}
+			
+			@Transactional
+			@Test
+			public void testAirportAsOrigin() {	
+				
+				
+				
+				List<Route> match_routes = airline_service.getAirportById(existing_airport_id).getAs_origin();
+				List<Route> existing_routes = airline_service.findAllRoutes().stream().filter(x -> x.getOrigin_id().equals(existing_airport_id)).collect(Collectors.toList());
+				
+				
+				assertEquals(collectionsMatch(match_routes.stream().map(x -> x.getOrigin_id()).collect(Collectors.toList()), existing_routes.stream().map(x -> x.getOrigin_id()).collect(Collectors.toList())), true);
+				
+				
+						
+			}
+		    @Transactional
+			@Test
+			public void testAirportAsDestination() {
+				List<Route> match_routes = airline_service.getAirportById(existing_airport_id).getAs_destination();
+				List<Route> existing_routes = airline_service.findAllRoutes().stream().filter(x -> x.getDestination_id().equals(existing_airport_id)).collect(Collectors.toList());
+				
+				assertEquals(collectionsMatch(match_routes.stream().map(x -> x.getDestination_id()).collect(Collectors.toList()), existing_routes.stream().map(x -> x.getDestination_id()).collect(Collectors.toList())), true);
+
+						
+			}
+			
+		}
 		
 		
 		
@@ -153,9 +308,11 @@ public class AirlineServiceTests {
 				            });
 			}
 			
+		
 			
 			
 		}
+		
 		
 		
 		
@@ -259,106 +416,10 @@ public class AirlineServiceTests {
 		}
 		
 		
-		@Nested
-		public 	class testAirport{
-						
-			Airport airport = new Airport();
-			
-			String existing_airport_id = "LAX";
-			String bad_id = "ABCD";
-			String good_id = "ABC";
-			String city = "Chino Hills";
 		
 			
-			public void init() {
-				airport.setCity(city);
-				airport.setIataId(good_id);
-				this.airport = airline_service.save(airport);
-				this.good_id = airport.getIataId();
-				this.city = airport.getCity();
-			
-			}
-			
-			public void tearDown() {
-				airline_service.deleteAirportById(good_id);
-			}
-			
-			@Test
-			public void testFindAirport() {
-
-				assertEquals(airline_service.getAirportById("LAX").getCity(), "Los Angeles");
-				
-			}
-			
-			@Transactional
-			@Test
-			public void testCity() {
-				// TODO Auto-generated method stub
-				init();
-				assertEquals(airline_service.getAirportById(good_id).getCity(), city);
-				tearDown();
-			}
-			
-			@Test
-			public void testId() {
-				init();
-				assertEquals(airline_service.getAirportById(airport.getIataId()).getIataId(), good_id);
-				tearDown();
-			}
-			
-			@Test
-			public void testUpdate() {
-				init();
-				String update_city = "cityname";
-				airport.setCity(update_city);
-				airline_service.update(airport);
-				assertEquals(airline_service.getAirportById(good_id).getCity(), update_city);
-				airport.setCity(city);
-				airline_service.update(airport);
-				tearDown();
-				
-			}
 			
 			
-			@Test
-			public void isDeleted() {
-				//init();
-				//tearDown();
-				assertEquals(airport_repository.existsById(good_id), false);
-			}
-			@Test
-			public void testNull() {
-				 assertEquals(airline_service.getAirportById(null), null);
-			}
-			
-			@Test
-			public void testFalse() {
-				assertThrows(NoSuchElementException.class,
-			            ()->{
-							 airline_service.getAirportById(bad_id);
-			            });
-			
-			}
-			
-			@Transactional
-			@Test
-			public void testAirportAsOrigin() {	
-				for(Route r : airline_service.getAirportById(existing_airport_id).getAs_origin()) {
-					assertEquals(r.getOrigin_id(),existing_airport_id);
-				}
-						
-			}
-			@Transactional
-			@Test
-			public void testAirportAsDestination() {
-				for(Route r : airline_service.getAirportById(existing_airport_id).getAs_destination()) {
-					assertEquals(r.getDestination_id(),existing_airport_id);
-				}
-
-						
-			}
-			
-		}
 		
 		
 		@Nested
@@ -369,7 +430,7 @@ public class AirlineServiceTests {
 
 			Integer good_id;
 			Integer bad_id = 999;
-			Integer route_id = 1;
+			Integer route_id = airline_service.findAllRoutes().get(0).getId();
 			LocalDateTime dt = LocalDateTime.now();
 			Integer airplane_id = 1;
 			Integer reserved_seats = 0;
@@ -383,7 +444,7 @@ public class AirlineServiceTests {
 				flight.setReserved_seats(reserved_seats);
 				flight.setSeat_price(seat_price);
 				
-				this.flight = airline_service.save(flight);
+				this.flight = airline_service.save(flight).get();
 				this.good_id = flight.getId();
 				this.route_id = flight.getRoute_id();
 				this.airplane_id = flight.getAirplane_id();
@@ -457,14 +518,14 @@ public class AirlineServiceTests {
 				flight.setSeat_price((float)99);
 				flight.setDeparture_time(LocalDateTime.now());
 				flight.setAirplane_id(1);
-				flight.setRoute_id(1);
+				flight.setRoute_id(route_id);
 				Integer flight_id = flight.getId();
 				
 				Flight updated_flight = airline_service.getFlightById(flight_id);
 				
 				assertEquals(updated_flight.getAirplane_id(), 1);
 				assertEquals(updated_flight.getDeparture_time(), flight.getDeparture_time());
-				assertEquals(updated_flight.getRoute_id(), 1);
+				assertEquals(updated_flight.getRoute_id(), route_id);
 				assertEquals(updated_flight.getReserved_seats(), 1000);
 				assertEquals(updated_flight.getSeat_price(), (float)99);
 				
@@ -475,7 +536,6 @@ public class AirlineServiceTests {
 			
 			@Test
 			public void testFindFlightByRoute() {
-				Integer route_id = 1;
 				List<Flight> flights = airline_service.findFlightByRoute(route_id);
 				for(Flight f : flights) {
 					assertEquals(f.getRoute_id(),  route_id);
@@ -489,7 +549,7 @@ public class AirlineServiceTests {
 				Integer airplane_id = 1;
 				List<Flight> flights = airline_service.findFlightByAirplane(airplane_id);
 				for(Flight f : flights) {
-					assertEquals(f.getAirplane_id(),  route_id);
+					assertEquals(f.getAirplane_id(),  airplane_id);
 				}
 			}
 			
@@ -538,7 +598,7 @@ public class AirlineServiceTests {
 				route.setDestination_id(destination_id);
 				route.setOrigin_id(origin_id);
 				route.setId(null);
-				this.route = airline_service.save(route);
+				this.route = airline_service.save(route).get();
 				this.good_id = route.getId();
 				this.origin_id = route.getOrigin_id();
 				this.destination_id = route.getDestination_id();
