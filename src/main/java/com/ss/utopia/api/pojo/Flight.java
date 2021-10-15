@@ -1,6 +1,7 @@
 package com.ss.utopia.api.pojo;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -15,6 +16,21 @@ public class Flight {
 	@Id
 	@GeneratedValue(strategy=GenerationType.AUTO)
 	Integer id;
+	@Override
+	public int hashCode() {
+		return Objects.hash(id);
+	}
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Flight other = (Flight) obj;
+		return Objects.equals(id, other.id);
+	}
 	Integer route_id;
 	Integer airplane_id;
 	LocalDateTime departure_time;
