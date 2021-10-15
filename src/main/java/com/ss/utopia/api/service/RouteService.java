@@ -36,8 +36,14 @@ public class RouteService {
 		return route_repository.findAll();
 	}
 
-	public Route getRouteById(Integer route_id) {
-		return route_repository.existsById(route_id) ? route_repository.getById(route_id) : null;
+	public Optional<Route> getRouteById(Integer route_id) {
+		if(route_repository.existsById(route_id)) {
+		
+		return Optional.of(route_repository.getById(route_id));
+		}
+		
+		return Optional.empty();
+		
 	}
 	
 	

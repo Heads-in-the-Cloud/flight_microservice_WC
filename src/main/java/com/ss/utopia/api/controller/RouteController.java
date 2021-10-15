@@ -37,7 +37,12 @@ public class RouteController {
 	
 	@RequestMapping(path = "read/routes/id={route_id}", method = RequestMethod.GET)
 	public ResponseEntity<Route> getRouteById(@PathVariable Integer route_id) {
-		return ResponseEntity.ok().body(route_service.getRouteById(route_id));
+		Optional<Route> route = route_service.getRouteById(route_id);
+		if(route.isEmpty()) {
+			return ResponseEntity.badRequest().build();
+		}
+		
+		return ResponseEntity.ok().body(route.get());
 	}
 	
 	@RequestMapping(path = "read/routes", method = RequestMethod.GET)
