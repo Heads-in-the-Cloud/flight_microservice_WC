@@ -23,6 +23,7 @@ import com.ss.utopia.api.pojo.Airport;
 import com.ss.utopia.api.service.AirportService;
 
 @RestController
+@RequestMapping("/airline")
 public class AirportController {
 
 	@Autowired

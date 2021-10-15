@@ -24,6 +24,7 @@ import com.ss.utopia.api.service.AirportService;
 import com.ss.utopia.api.service.RouteService;
 
 @RestController
+@RequestMapping("/airline")
 public class RouteController {
 
 	@Autowired 

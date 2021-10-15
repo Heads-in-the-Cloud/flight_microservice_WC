@@ -23,6 +23,7 @@ import com.ss.utopia.api.pojo.Flight;
 import com.ss.utopia.api.service.FlightService;
 
 @RestController
+@RequestMapping("/airline")
 public class FlightController {
 
 	

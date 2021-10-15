@@ -23,6 +23,7 @@ import com.ss.utopia.api.pojo.AirplaneType;
 import com.ss.utopia.api.service.AirplaneTypeService;
 
 @RestController
+@RequestMapping("/airline")
 public class AirplaneTypeController {
 
 	@Autowired
