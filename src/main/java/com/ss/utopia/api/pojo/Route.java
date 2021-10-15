@@ -9,6 +9,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
@@ -20,8 +21,11 @@ public class Route {
 	@GeneratedValue(strategy=GenerationType.AUTO)
 	private Integer id;
 	
-	private String origin_id;
-	private String destination_id;
+	 @ManyToOne(fetch = FetchType.LAZY)
+	private Airport origin_id;
+	 
+	 @ManyToOne(fetch = FetchType.LAZY)
+	private Airport destination_id;
 	
 	@OneToMany(targetEntity = Flight.class, cascade = CascadeType.ALL, mappedBy = "route_id", fetch = FetchType.EAGER)
 	//@JoinColumn(name = "route_id", referencedColumnName = "id", nullable = true)
@@ -50,25 +54,24 @@ public class Route {
 	}
 
 
-	public String getOrigin_id() {
+	
+
+
+	public Airport getOrigin_id() {
 		return origin_id;
 	}
 
-
-	public void setOrigin_id(String origin_id) {
+	public void setOrigin_id(Airport origin_id) {
 		this.origin_id = origin_id;
 	}
 
-
-	public String getDestination_id() {
+	public Airport getDestination_id() {
 		return destination_id;
 	}
 
-
-	public void setDestination_id(String destination_id) {
+	public void setDestination_id(Airport destination_id) {
 		this.destination_id = destination_id;
 	}
-
 
 	public void setId(Integer id) {
 		this.id = id;

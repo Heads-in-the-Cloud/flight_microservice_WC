@@ -92,15 +92,18 @@ public class AirlineService {
 		return flight_repository.existsById(flight_id) ? flight_repository.getById(flight_id) : null;
 	}
 
+	
 	public Optional<Airport> save(Airport airport) {
 
+		try {
 		if (airport_repository.existsById(airport.getIataId())) {
+			
 			return Optional.empty();
 		}
-		try {
-
+		
 			List<Route> origin_routes = new ArrayList<>();
-
+			
+			
 			if (airport.getAs_origin() != null) {
 				origin_routes = airport.getAs_origin().stream().peek(x -> x.setOrigin_id(airport.getIataId()))
 						.collect(Collectors.toList());
@@ -121,6 +124,7 @@ public class AirlineService {
 			airport_repository.save(airport);
 
 			for (Route route : origin_routes) {
+
 				save(route);
 			}
 			for (Route route : destination_routes) {
@@ -150,17 +154,11 @@ public class AirlineService {
 			Route persist_route = new Route();
 			persist_route.setOrigin_id(route.getOrigin_id());
 			persist_route.setDestination_id(route.getDestination_id());
-
 			
 			persist_route = route_repository.save(persist_route);
 			Integer route_id = persist_route.getId();
 			if (route.getFlights() != null) {
-				System.out.println(route);
-				System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
-				System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
-				System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
-				System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
-				System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+				
 				route.getFlights().forEach(x -> {
 					x.setRoute_id(route_id);
 					save(x);
@@ -213,24 +211,58 @@ public class AirlineService {
 
 	@Transactional
 	public Optional<Airport> update(Airport airport) {
+		try {
 
 		if (!airport_repository.existsById(airport.getIataId().toUpperCase())) {
 
 			return Optional.empty();
 
 		}
-		try {
 
+		System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+		System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+		System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+		System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+		System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
 			Airport airport_to_update = airport_repository.getAirportById(airport.getIataId()).get();
+			System.out.println("GGGGGGGGGGGGGGGGGGGGGGGGGGGGGg");
+			System.out.println("GGGGGGGGGGGGGGGGGGGGGGGGGGGGGg");
+			System.out.println("GGGGGGGGGGGGGGGGGGGGGGGGGGGGGg");
+			System.out.println("GGGGGGGGGGGGGGGGGGGGGGGGGGGGGg");
+			System.out.println("GGGGGGGGGGGGGGGGGGGGGGGGGGGGGg");
 			if (airport.getAs_destination() != null) {
+				System.out.println(airport.getAs_destination());
+				airport.getAs_destination().forEach(x -> x.setDestination_id(airport.getIataId()));
+				System.out.println(airport.getAs_destination());
+				System.out.println(airport.getAs_destination().getClass());
 
 			}
+			System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+			System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+			System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+			System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+			System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
 			if (airport.getAs_origin() != null) {
+				System.out.println(airport.getAs_origin());
+				airport.getAs_origin().forEach(x -> x.setOrigin_id(airport.getIataId()));
+				System.out.println(airport.getAs_origin());
+
 
 			}
+			System.out.println("GGGGGGGGGGGGGGGGGGGGGGGGGGGGGg");
+			System.out.println("GGGGGGGGGGGGGGGGGGGGGGGGGGGGGg");
+			System.out.println("GGGGGGGGGGGGGGGGGGGGGGGGGGGGGg");
+			System.out.println("GGGGGGGGGGGGGGGGGGGGGGGGGGGGGg");
+			System.out.println("GGGGGGGGGGGGGGGGGGGGGGGGGGGGGg");
 			airport_to_update.setAs_destination(airport.getAs_destination());
 			airport_to_update.setAs_origin(airport.getAs_origin());
+
 			airport_to_update.setCity(airport.getCity());
+			System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+			System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+			System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+			System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+			System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
 			return Optional.of(airport_to_update);
 
 		} catch (Exception e) {
