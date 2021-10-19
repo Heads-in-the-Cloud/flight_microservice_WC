@@ -14,6 +14,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name="route")
 public class Route {
@@ -69,7 +71,7 @@ public class Route {
 		this.flights = flights;
 	}
 
-
+	@JsonIgnore
 	@OneToMany(targetEntity = Flight.class, cascade = CascadeType.ALL, mappedBy = "route_id", fetch = FetchType.EAGER)
 	//@JoinColumn(name = "route_id", referencedColumnName = "id", nullable = true)
 	List<Flight> flights;

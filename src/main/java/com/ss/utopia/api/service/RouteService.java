@@ -36,21 +36,16 @@ public class RouteService {
 		return route_repository.findAll();
 	}
 
-	public Optional<Route> getRouteById(Integer route_id) {
-		if(route_repository.existsById(route_id)) {
+	public Route getRouteById(Integer route_id) {
 		
-		return Optional.of(route_repository.getById(route_id));
-		}
+		return route_repository.findById(route_id).get();
 		
-		return Optional.empty();
 		
 	}
 	
 	
 	@Transactional
-	public Optional<Route> save(Route route) {
-
-		try {
+	public Route save(Route route) {
 
 			Route persist_route = new Route();
 
@@ -61,6 +56,7 @@ public class RouteService {
 			
 			List<Flight> saved_flights = new ArrayList<>();
 			Integer route_id = persist_route.getId();
+			
 			if (route.getFlights() != null) {
 
 				route.getFlights().forEach(x -> {
@@ -71,23 +67,14 @@ public class RouteService {
 			}
 			
 			persist_route.setFlights(saved_flights);
-			return Optional.of(persist_route);
-
-
-		} catch (DataIntegrityViolationException e) {
-
-			// e.printStackTrace();
-
-			return Optional.empty();
-		}
-
+			return persist_route;
+		
 	}
 	
 	
 	@Transactional
-	public Optional<Route> update(Route route) {
+	public Route update(Route route) {
 		
-		try {
 			Route route_to_save = route_repository.findById(route.getId()).get();
 			if (route.getOrigin_id() != null) {
 				route_to_save.setOrigin_id(route.getOrigin_id());
@@ -98,15 +85,11 @@ public class RouteService {
 			if (route.getFlights() != null) {
 				
 				route.getFlights().forEach(x -> x.setRoute_id(route_to_save.getId()));
-				
-				
+								
 				route_to_save.setFlights(route.getFlights());
 			}
 
-			return Optional.of(route_to_save);
-		} catch(Exception e) {
-			return Optional.empty();
-		}
+			return route_to_save;
 		
 	}
 	

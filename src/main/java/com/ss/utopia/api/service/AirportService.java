@@ -39,22 +39,14 @@ public class AirportService {
 	}
 
 	public Airport getAirportById(String airport_code) {
-		if (airport_code == null) {
-			return null;
-		}
+	
 		return airport_repository.getAirportById(airport_code.toUpperCase()).get();
 	}
 	
 	
 	
 	
-	public Optional<Airport> save(Airport airport) {
-
-		try {
-			if (airport_repository.existsById(airport.getIataId())) {
-
-				return Optional.empty();
-			}
+	public Airport save(Airport airport) {
 
 			List<Route> origin_routes = new ArrayList<>();
 			List<Route> destination_routes = new ArrayList<>();
@@ -81,12 +73,12 @@ public class AirportService {
 
 			for (int i =0; i<origin_routes.size(); i++) {
 
-				Integer route_id = route_service.save(origin_routes.get(i)).get().getId();
+				Integer route_id = route_service.save(origin_routes.get(i)).getId();
 				origin_routes.get(i).setId(route_id);
 			}
 			for (int i =0; i<destination_routes.size(); i++) {
 				
-				Integer route_id = route_service.save(destination_routes.get(i)).get().getId();
+				Integer route_id = route_service.save(destination_routes.get(i)).getId();
 				destination_routes.get(i).setId(route_id);
 			}
 
@@ -96,13 +88,8 @@ public class AirportService {
 			airport.setAs_destination(destination_routes);
 			airport.setAs_origin(origin_routes);
 
-			return Optional.of(airport);
+			return airport;
 
-		} catch (IllegalArgumentException e) {
-
-			e.printStackTrace();
-			return Optional.empty();
-		}
 
 	}
 	
@@ -111,58 +98,59 @@ public class AirportService {
 	
 	
 	@Transactional
-	public Optional<Airport> update(Airport airport) {
-		
-		Session session = sessionFactory.openSession();
-		Transaction tx = session.beginTransaction();		
-
-
-		Airport airport_to_update = new Airport();
-		try {
-			if (!airport_repository.existsById(airport.getIataId().toUpperCase())) {
-
-				return Optional.empty();
-
-			}
+	public Airport update(Airport airport) {
+					
+	
+			Airport airport_to_update = airport_repository.getAirportById(airport.getIataId()).get();
 			
-			airport_to_update = airport_repository.getAirportById(airport.getIataId()).get();
 			List<Route> origins = airport_to_update.getAs_origin();
 			List<Route> destinations = airport_to_update.getAs_destination();
+			
+		
+			
 			if (airport.getAs_destination() != null) {
-
+				
 				for (Route r : airport.getAs_destination()) {
 					r.setDestination_id(airport.getIataId());
 
-					if (destinations.contains(r)) {
-
-						Integer index = destinations.indexOf(r);
-						if (r.getFlights() != null) {
-							r.getFlights().stream().forEach(x -> {
-								System.out.println(destinations.get(index).getId());
-								x.setRoute_id(destinations.get(index).getId());
-								flight_service.save(x);
+					if (destinations.contains(r)) { 
+						Route route_to_update = destinations.get(destinations.indexOf(r));
+												
+						//set flight_id to existing route_id
+						if (r.getFlights() != null) { 
+							r.getFlights().forEach(x -> {
+								
+								x.setRoute_id(route_to_update.getId());
+								
+								route_to_update.getFlights().add(flight_service.save(x));
+								
 
 							});
+							
 						}
 
 					} else {
 						
-						
 
 						List<Flight> flights = r.getFlights();
 						r.setFlights(null);
-
-						Route saved_route = route_service.save(r).get();
-
+						Route saved_route = route_service.save(r);
 						if (flights != null) {
+							
 							flights.forEach(x -> {
-
 								x.setRoute_id(saved_route.getId());
 								flight_service.save(x);
 
 							});
 
 						}
+						saved_route.setFlights(flights);
+						System.out.println(flights);
+						System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFf");
+						System.out.println(saved_route.getFlights());
+						System.out.println(saved_route);
+						airport_to_update.getAs_destination().add(saved_route);
+						System.out.println("GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG");
 
 					}
 
@@ -176,12 +164,15 @@ public class AirportService {
 
 					if (origins.contains(r)) {
 
-						Integer index = origins.indexOf(r);
+						Route route_to_update = origins.get(origins.indexOf(r));
+						
+						//set flight_id to existing route_id
 						if (r.getFlights() != null) {
 							r.getFlights().forEach(x -> {
 
-								x.setRoute_id(origins.get(index).getId());
-								flight_service.save(x);
+								x.setRoute_id(route_to_update.getId());
+								
+								route_to_update.getFlights().add(flight_service.save(x));
 
 							});
 						}
@@ -189,11 +180,10 @@ public class AirportService {
 					} else {
 						
 						
-
 						List<Flight> flights = r.getFlights();
 						r.setFlights(null);
 
-						Route saved_route = route_service.save(r).get();
+						Route saved_route = route_service.save(r);
 						if (flights != null) {
 							
 							flights.forEach(x -> {
@@ -202,6 +192,10 @@ public class AirportService {
 
 							});
 						}
+						
+						saved_route.setFlights(flights);
+						airport_to_update.getAs_destination().add(saved_route);
+
 					}
 				}
 
@@ -212,17 +206,12 @@ public class AirportService {
 			}
 			
 
-		} catch (Exception e) {
+		return airport_to_update;
+		
 
-			tx.rollback();
-			return Optional.empty();
-
-		}finally {
-			session.close();
-		}
-
-		return Optional.of(airport_to_update);
 	}
+	
+	
 	
 	
 	

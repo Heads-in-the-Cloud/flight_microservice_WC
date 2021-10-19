@@ -17,57 +17,44 @@ public class FlightService {
 
 	@Autowired
 	FlightRepository flight_repository;
-	
+
 	public List<Flight> findAllFlights() {
 		return flight_repository.findAll();
 	}
 
-
-	public Optional<Flight> findFlightById(Integer flight_id) {
-		return flight_repository.findById(flight_id);
+	public Flight findFlightById(Integer flight_id) {
+		return flight_repository.findById(flight_id).get();
 	}
-	
-	
-	public Optional<Flight> save(Flight flight) {
-		try {
 
-			return Optional.of(flight_repository.save(flight));
+	public Flight save(Flight flight) {
 
-		} catch (IllegalArgumentException e) {
+		return flight_repository.save(flight);
 
-			// e.printStackTrace();
-			return Optional.empty();
-		}
 	}
-	
-	
-	
+
 	@Transactional
-	public Optional<Flight> update(Flight flight) {
-		if (flight_repository.existsById(flight.getId())) {
-			Flight flight_to_save = flight_repository.findById(flight.getId()).get();
-			if (flight.getAirplane_id() != null) {
-				flight_to_save.setAirplane_id(flight.getAirplane_id());
-			}
-			if (flight.getRoute_id() != null) {
-				flight_to_save.setRoute_id(flight.getRoute_id());
-			}
-			if (flight.getDeparture_time() != null) {
-				flight_to_save.setDeparture_time(flight.getDeparture_time());
-			}
-			if (flight.getReserved_seats() != null) {
-				flight_to_save.setReserved_seats(flight.getReserved_seats());
-			}
-			if (flight.getSeat_price() != null) {
-				flight_to_save.setSeat_price(flight.getSeat_price());
-			}
-			return Optional.of(flight_to_save);
+	public Flight update(Flight flight) {
+		
+		Flight flight_to_save = flight_repository.findById(flight.getId()).get();
+		if (flight.getAirplane_id() != null) {
+			flight_to_save.setAirplane_id(flight.getAirplane_id());
 		}
-		return Optional.empty();
+		if (flight.getRoute_id() != null) {
+			flight_to_save.setRoute_id(flight.getRoute_id());
+		}
+		if (flight.getDeparture_time() != null) {
+			flight_to_save.setDeparture_time(flight.getDeparture_time());
+		}
+		if (flight.getReserved_seats() != null) {
+			flight_to_save.setReserved_seats(flight.getReserved_seats());
+		}
+		if (flight.getSeat_price() != null) {
+			flight_to_save.setSeat_price(flight.getSeat_price());
+		}
+		return flight_to_save;
+
 	}
-	
-	
-	
+
 	/* Special Queries */
 
 	public List<Flight> findFlightByRoute(Integer route_id) {
@@ -79,8 +66,7 @@ public class FlightService {
 		return flight_repository.findAll().stream().filter(x -> x.getAirplane_id().equals(airplane_id))
 				.collect(Collectors.toList());
 	}
-	
-	
+
 	public void deleteFlight(Integer flight_id) {
 		flight_repository.deleteById(flight_id);
 	}

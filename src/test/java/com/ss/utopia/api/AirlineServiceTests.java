@@ -3,7 +3,6 @@ package com.ss.utopia.api;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.LocalDateTime;
@@ -20,11 +19,13 @@ import org.assertj.core.util.Arrays;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 
 import com.ss.utopia.api.dao.AirplaneRepository;
@@ -47,23 +48,21 @@ import com.ss.utopia.api.service.RouteService;
 @RunWith(SpringRunner.class)
 public class AirlineServiceTests {
 
-
-
 	@Autowired
 	AirportService airport_service;
-	
+
 	@Autowired
 	RouteService route_service;
-	
+
 	@Autowired
 	FlightService flight_service;
-	
+
 	@Autowired
 	AirplaneTypeService airplane_type_service;
-	
+
 	@Autowired
 	AirplaneService airplane_service;
-	
+
 	@Autowired
 	AirplaneRepository airplane_repository;
 
@@ -81,8 +80,6 @@ public class AirlineServiceTests {
 
 	@Autowired
 	SessionFactory sessionFactory;
-	
-	
 
 	Integer NUM_TO_ADD = 1;
 
@@ -115,7 +112,7 @@ public class AirlineServiceTests {
 		}
 
 		public void save() {
-			this.airport = airport_service.save(airport).get();
+			this.airport = airport_service.save(airport);
 			this.good_id = airport.getIataId();
 			this.city = airport.getCity();
 		}
@@ -170,7 +167,7 @@ public class AirlineServiceTests {
 			System.out.println(routes);
 			airport.setAs_origin(routes);
 
-			airport_service.save(airport).get();
+			airport_service.save(airport);
 
 			int c = 0;
 			for (Route r : route_repository.findAll()) {
@@ -200,8 +197,6 @@ public class AirlineServiceTests {
 				return temp;
 
 			}).collect(Collectors.toList());
-
-
 
 			airport.setAs_destination(routes);
 
@@ -237,66 +232,62 @@ public class AirlineServiceTests {
 			List<Route> match_routes = airport_service.getAirportById(existing_airport_id).getAs_origin();
 			List<Route> existing_routes = route_service.findAllRoutes().stream()
 					.filter(x -> x.getOrigin_id().equals(existing_airport_id)).collect(Collectors.toList());
-			
 
 			assertEquals(collectionsMatch(match_routes.stream().map(x -> x.getOrigin_id()).collect(Collectors.toList()),
 					existing_routes.stream().map(x -> x.getOrigin_id()).collect(Collectors.toList())), true);
 
 		}
-		
-		
+
 		@Transactional
 		@Test
 		public void testUpdateAirportRoutes() {
-			
+
 			List<Route> routes = new ArrayList<>();
-			
 
 			Airport airport = new Airport();
 			airport.setIataId("EWR");
 			Route route = new Route();
 			route.setDestination_id("ATL");
-			
+
 			routes.add(route);
 			airport.setAs_origin(routes);
-			
-			
-			Airport new_airport = airport_service.update(airport).get();
-			
-			assertEquals( route_service.findAllRoutes().stream().map(x -> x.getOrigin_id()).collect(Collectors.toList()).contains("ATL"), true);
-			assertEquals( route_service.findAllRoutes().stream().map(x -> x.getDestination_id()).collect(Collectors.toList()).contains(existing_airport_id), true);	
-			
+
+			Airport new_airport = airport_service.update(airport);
+
+			assertEquals(route_service.findAllRoutes().stream().map(x -> x.getOrigin_id()).collect(Collectors.toList())
+					.contains("ATL"), true);
+			assertEquals(route_service.findAllRoutes().stream().map(x -> x.getDestination_id())
+					.collect(Collectors.toList()).contains(existing_airport_id), true);
+
 			route_service.deleteRoute(new_airport.getAs_origin().get(0).getId());
 
 		}
-		
-		
+
 		@Transactional
 		@Test
 		public void testUpdateWithRouteAndFlight() {
 			List<Flight> flights = new ArrayList<>();
 			List<Route> routes = new ArrayList<>();
-			
 
 			Airport airport = new Airport();
 			airport.setIataId("EWR");
 			Route route = new Route();
 			route.setDestination_id("ATL");
-			Flight flight= new Flight();
+			Flight flight = new Flight();
 			flight.setAirplane_id(1);
 			flight.setReserved_seats(0);
-			flight.setSeat_price((float)1);
+			flight.setSeat_price((float) 1);
 			flight.setDeparture_time(LocalDateTime.now());
 			flights.add(flight);
 			route.setFlights(flights);
 			routes.add(route);
 			airport.setAs_origin(routes);
-			Airport new_airport = airport_service.update(airport).get();
-			
+			Airport new_airport = airport_service.update(airport);
+
 			assertEquals(flight_service.findAllFlights().contains(flight), true);
-			
+
 			route_service.deleteRoute(new_airport.getAs_origin().get(0).getId());
-			
+
 		}
 
 		@Transactional
@@ -511,7 +502,7 @@ public class AirlineServiceTests {
 			flight.setReserved_seats(reserved_seats);
 			flight.setSeat_price(seat_price);
 
-			this.flight = flight_service.save(flight).get();
+			this.flight = flight_service.save(flight);
 			this.good_id = flight.getId();
 			this.route_id = flight.getRoute_id();
 			this.airplane_id = flight.getAirplane_id();
@@ -529,7 +520,7 @@ public class AirlineServiceTests {
 		public void testRoute() {
 			// TODO Auto-generated method stub
 			init();
-			assertEquals(flight_service.findFlightById(good_id).get().getRoute_id(), route_id);
+			assertEquals(flight_service.findFlightById(good_id).getRoute_id(), route_id);
 			tearDown();
 		}
 
@@ -538,7 +529,7 @@ public class AirlineServiceTests {
 		public void testAirplane() {
 			// TODO Auto-generated method stub
 			init();
-			assertEquals(flight_service.findFlightById(good_id).get().getAirplane_id(), airplane_id);
+			assertEquals(flight_service.findFlightById(good_id).getAirplane_id(), airplane_id);
 			tearDown();
 		}
 
@@ -547,7 +538,7 @@ public class AirlineServiceTests {
 		public void testDate() {
 			// TODO Auto-generated method stub
 			init();
-			assertEquals(flight_service.findFlightById(good_id).get().getDeparture_time(), dt);
+			assertEquals(flight_service.findFlightById(good_id).getDeparture_time(), dt);
 			tearDown();
 		}
 
@@ -556,7 +547,7 @@ public class AirlineServiceTests {
 		public void testReservedSeats() {
 			// TODO Auto-generated method stub
 			init();
-			assertEquals(flight_service.findFlightById(good_id).get().getReserved_seats(), reserved_seats);
+			assertEquals(flight_service.findFlightById(good_id).getReserved_seats(), reserved_seats);
 			tearDown();
 		}
 
@@ -565,14 +556,14 @@ public class AirlineServiceTests {
 		public void testSeatPrice() {
 			// TODO Auto-generated method stub
 			init();
-			assertEquals(flight_service.findFlightById(good_id).get().getSeat_price(), seat_price);
+			assertEquals(flight_service.findFlightById(good_id).getSeat_price(), seat_price);
 			tearDown();
 		}
 
 		@Test
 		public void testId() {
 			init();
-			assertEquals(flight_service.findFlightById(good_id).get().getId(), good_id);
+			assertEquals(flight_service.findFlightById(good_id).getId(), good_id);
 			tearDown();
 		}
 
@@ -588,7 +579,7 @@ public class AirlineServiceTests {
 			flight.setRoute_id(route_id);
 			Integer flight_id = flight.getId();
 
-			Flight updated_flight = flight_service.findFlightById(flight_id).get();
+			Flight updated_flight = flight_service.findFlightById(flight_id);
 
 			assertEquals(updated_flight.getAirplane_id(), 1);
 			assertEquals(updated_flight.getDeparture_time(), flight.getDeparture_time());
@@ -634,8 +625,10 @@ public class AirlineServiceTests {
 
 		@Test
 		public void testFalse() {
-			assertEquals(Optional.empty(), flight_service.findFlightById(bad_id));
 
+			Assertions.assertThrows(NoSuchElementException.class, () -> {
+				flight_service.findFlightById(bad_id);
+			});
 		}
 
 	}
@@ -654,7 +647,7 @@ public class AirlineServiceTests {
 			route.setDestination_id(destination_id);
 			route.setOrigin_id(origin_id);
 			route.setId(null);
-			this.route = route_service.save(route).get();
+			this.route = route_service.save(route);
 			this.good_id = route.getId();
 			this.origin_id = route.getOrigin_id();
 			this.destination_id = route.getDestination_id();
@@ -671,7 +664,7 @@ public class AirlineServiceTests {
 			// TODO Auto-generated method stub
 			init();
 
-			assertEquals(route_service.getRouteById(good_id).get().getOrigin_id(), origin_id);
+			assertEquals(route_service.getRouteById(good_id).getOrigin_id(), origin_id);
 			tearDown();
 		}
 
@@ -680,14 +673,14 @@ public class AirlineServiceTests {
 		public void testDestination() {
 			// TODO Auto-generated method stub
 			init();
-			assertEquals(route_service.getRouteById(good_id).get().getDestination_id(), destination_id);
+			assertEquals(route_service.getRouteById(good_id).getDestination_id(), destination_id);
 			tearDown();
 		}
 
 		@Test
 		public void testId() {
 			init();
-			assertEquals(route_service.getRouteById(good_id).get().getId(), good_id);
+			assertEquals(route_service.getRouteById(good_id).getId(), good_id);
 			tearDown();
 		}
 
@@ -704,12 +697,13 @@ public class AirlineServiceTests {
 				route_service.getRouteById(null);
 			});
 		}
-		
-		@Transactional
+
 		@Test
 		public void testFalse() {
-			assertEquals(Optional.empty(), route_service.getRouteById(bad_id));
 
+			Assertions.assertThrows(NoSuchElementException.class, () -> {
+				route_service.getRouteById(bad_id);
+			});
 		}
 	}
 

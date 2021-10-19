@@ -13,6 +13,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "airport")
 public class Airport {
@@ -66,9 +68,9 @@ public class Airport {
 			this.as_origin.add(route);
 		}
 		else if(route.getFlights() != null){
-			Integer index = as_destination.indexOf(route);
+			Integer index = as_origin.indexOf(route);
 			
-			route.getFlights().forEach(x -> x.setRoute_id(as_destination.get(index).getId()));
+			route.getFlights().forEach(x -> x.setRoute_id(as_origin.get(index).getId()));
 		
 			as_origin.set( index, route);
 		}
@@ -91,11 +93,12 @@ public class Airport {
 	
 	
 	
-
+	@JsonIgnore
 	@OneToMany(targetEntity=Route.class, cascade = CascadeType.MERGE)
 	@JoinColumn(name="origin_id", nullable = true)
 	private List<Route> as_origin;
 
+	@JsonIgnore
 	@OneToMany(targetEntity=Route.class, cascade = CascadeType.MERGE)
 	@JoinColumn(name = "destination_id", nullable=true)
 	private List<Route> as_destination;

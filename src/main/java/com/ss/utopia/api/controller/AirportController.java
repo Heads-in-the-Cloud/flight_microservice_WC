@@ -2,11 +2,13 @@ package com.ss.utopia.api.controller;
 
 import java.net.URI;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -41,25 +43,28 @@ public class AirportController {
 
 	@PostMapping(path = "/add/airport")
 	public ResponseEntity<Airport> saveAirport(@RequestBody Airport airport) {
-
-		Optional<Airport> new_airport = airport_service.save(airport);
-
-		if (new_airport.isEmpty()) {
+		try {
+			Airport new_airport = airport_service.save(airport);
+			URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath()
+					.path("/read/airports/id=" + airport.getIataId()).toUriString());
+			return ResponseEntity.created(uri).body(new_airport);
+		} catch (DataIntegrityViolationException e) {
 			return ResponseEntity.badRequest().body(airport);
 		}
 
-		URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath()
-				.path("/read/airports/id=" + airport.getIataId()).toUriString());
-		return ResponseEntity.created(uri).body(new_airport.get());
 	}
 
 	@PutMapping(path = "/update/airport")
 	public ResponseEntity<Airport> updateAirport(@RequestBody Airport airport) {
-		Optional<Airport> new_airport = airport_service.update(airport);
-		if (new_airport.isPresent()) {
-			return ResponseEntity.ok().body(new_airport.get());
+
+		try {
+			Airport new_airport = airport_service.update(airport);
+			return ResponseEntity.ok().body(new_airport);
+
+		} catch (NoSuchElementException | DataIntegrityViolationException e) {
+			return ResponseEntity.noContent().build();
+
 		}
-		return ResponseEntity.noContent().build();
 	}
 
 	@Modifying

@@ -24,38 +24,31 @@ public class AirplaneService {
 	}
 
 	public Airplane save(Airplane airplane) {
-		try {
 
 			return airplane_repository.save(airplane);
 
-		} catch (IllegalArgumentException e) {
-
-			return null;
-		}
 	}
 
-	public Optional<Airplane> update(Airplane airplane) {
+	public Airplane update(Airplane airplane) {
 		if (airplane_repository.existsById(airplane.getId())) {
 			airplane_repository.save(airplane);
-			return Optional.of(airplane);
+			return airplane;
 		}
-		return Optional.empty();
+		return null;
 	}
 
 	public void deleteAirplane(Integer airplane_id) {
+		
 		airplane_repository.deleteById(airplane_id);
 	}
 
 	// Special Queries
 
-	public Optional<List<Airplane>> findAirplaneByType(Integer type_id) {
+	public List<Airplane> findAirplaneByType(Integer type_id) {
 
-		try {
 			List<Airplane> airplanes = airplane_repository.findByType(type_id);
-			return Optional.of(airplanes);
-		} catch (Exception e) {
-			return Optional.empty();
-		}
+			return airplanes;
+		
 
 	}
 
