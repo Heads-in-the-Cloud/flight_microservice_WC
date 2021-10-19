@@ -39,13 +39,8 @@ public class FlightController {
 	@RequestMapping(path = "read/flights/id={flight_id}", method = RequestMethod.GET)
 	public ResponseEntity<Flight> findFlightById(@PathVariable Integer flight_id) {
 
-		try {
 			Flight flight = flight_service.findFlightById(flight_id);
 			return ResponseEntity.ok().body(flight);
-
-		} catch (NoSuchElementException e) {
-			return ResponseEntity.badRequest().build();
-		}
 	}
 
 	@RequestMapping(path = "/find/flights/airplane/id={airplane_id}", method = RequestMethod.GET)
@@ -61,30 +56,18 @@ public class FlightController {
 	@PostMapping(path = "/add/flight")
 	public ResponseEntity<Flight> saveRoute(@RequestBody Flight flight) {
 
-		try {
-
 			Flight new_flight = flight_service.save(flight);
 			URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/flights").toUriString());
 			return ResponseEntity.created(uri).body(new_flight);
-
-		} catch (DataIntegrityViolationException e) {
-			return ResponseEntity.badRequest().body(flight);
-
-		}
 
 	}
 
 	@PutMapping(path = "/update/flight")
 	public ResponseEntity<Flight> updateFlight(@RequestBody Flight flight) {
 
-		try {
 			Flight new_flight = flight_service.update(flight);
 			return ResponseEntity.ok().body(new_flight);
 
-		} catch (NoSuchElementException | DataIntegrityViolationException e) {
-			return ResponseEntity.noContent().build();
-
-		}
 	}
 
 	@Modifying

@@ -37,13 +37,8 @@ public class RouteController {
 
 	@RequestMapping(path = "read/routes/id={route_id}", method = RequestMethod.GET)
 	public ResponseEntity<Route> getRouteById(@PathVariable Integer route_id) {
-		try {
 			Route route = route_service.getRouteById(route_id);
 			return ResponseEntity.ok().body(route);
-
-		} catch (NoSuchElementException e) {
-			return ResponseEntity.badRequest().build();
-		}
 
 	}
 
@@ -64,14 +59,10 @@ public class RouteController {
 
 	@PostMapping(path = "/add/route")
 	public ResponseEntity<Route> saveRoute(@RequestBody Route route) {
-		try {
 
 			Route new_route = route_service.save(route);
 			URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/routes").toUriString());
 			return ResponseEntity.created(uri).body(new_route);
-		} catch (DataIntegrityViolationException e) {
-			return ResponseEntity.badRequest().body(route);
-		}
 
 	}
 
@@ -79,14 +70,9 @@ public class RouteController {
 	@PutMapping(path = "/update/route")
 	public ResponseEntity<Route> updateRoute(@RequestBody Route route) {
 
-		try {
 			Route new_route = route_service.update(route);
 			return ResponseEntity.ok().body(new_route);
 
-		} catch (NoSuchElementException | DataIntegrityViolationException e) {
-			return ResponseEntity.noContent().build();
-
-		}
 	}
 
 	@Modifying

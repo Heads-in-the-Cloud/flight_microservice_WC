@@ -1,5 +1,6 @@
 package com.ss.utopia.api.exception;
 
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.NoSuchElementException;
@@ -37,7 +38,7 @@ public class ApiExceptionHandler {
 
 
 		HttpStatus notFound = HttpStatus.BAD_REQUEST;
-		String message = "Missing fields";
+		String message = "Missing or incorrect fields";
 		
 		ApiException apiException = new ApiException(message, 
 				notFound,
@@ -52,7 +53,7 @@ public class ApiExceptionHandler {
 	public ResponseEntity<Object> handleInvalidDataException(InvalidFormatException ex) {
 
 		HttpStatus notFound = HttpStatus.BAD_REQUEST;
-		String message = "Missing fields";
+		String message = "Wrong value type for field";
 		
 		ApiException apiException = new ApiException(message, 
 				notFound,
@@ -61,5 +62,9 @@ public class ApiExceptionHandler {
 		return new ResponseEntity<Object>(apiException, HttpStatus.BAD_REQUEST);
 
 	}
+	
+	
+	
+	
 
 }

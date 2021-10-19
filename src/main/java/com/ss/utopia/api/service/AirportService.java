@@ -109,8 +109,10 @@ public class AirportService {
 		
 			
 			if (airport.getAs_destination() != null) {
+				System.out.println("Destination airport");
 				
 				for (Route r : airport.getAs_destination()) {
+					System.out.println(r);
 					r.setDestination_id(airport.getIataId());
 
 					if (destinations.contains(r)) { 
@@ -145,12 +147,9 @@ public class AirportService {
 
 						}
 						saved_route.setFlights(flights);
-						System.out.println(flights);
-						System.out.println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFf");
-						System.out.println(saved_route.getFlights());
+						System.out.println("saved route");
 						System.out.println(saved_route);
 						airport_to_update.getAs_destination().add(saved_route);
-						System.out.println("GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG");
 
 					}
 
@@ -158,10 +157,10 @@ public class AirportService {
 			}
 
 			if (airport.getAs_origin() != null) {
-
+				System.out.println("Origin airport");
 				for (Route r : airport.getAs_origin()) {
 					r.setOrigin_id(airport.getIataId());
-
+					System.out.println(r);
 					if (origins.contains(r)) {
 
 						Route route_to_update = origins.get(origins.indexOf(r));
@@ -192,9 +191,10 @@ public class AirportService {
 
 							});
 						}
-						
+						System.out.println("saved route");
+						System.out.println(saved_route);
 						saved_route.setFlights(flights);
-						airport_to_update.getAs_destination().add(saved_route);
+						airport_to_update.getAs_origin().add(saved_route);
 
 					}
 				}

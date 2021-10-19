@@ -1,6 +1,7 @@
 package com.ss.utopia.api.pojo;
 
 import java.util.List;
+
 import java.util.Objects;
 
 import javax.persistence.CascadeType;
@@ -13,7 +14,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import com.fasterxml.jackson.annotation.JsonFilter;
+
 
 @Entity
 @Table(name = "airport")
@@ -92,13 +95,10 @@ public class Airport {
 	
 	
 	
-	
-	@JsonIgnore
 	@OneToMany(targetEntity=Route.class, cascade = CascadeType.MERGE)
 	@JoinColumn(name="origin_id", nullable = true)
 	private List<Route> as_origin;
 
-	@JsonIgnore
 	@OneToMany(targetEntity=Route.class, cascade = CascadeType.MERGE)
 	@JoinColumn(name = "destination_id", nullable=true)
 	private List<Route> as_destination;
@@ -120,3 +120,4 @@ public class Airport {
 	}
 
 }
+
